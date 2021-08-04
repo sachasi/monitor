@@ -1,0 +1,10 @@
+<% Object.keys(messages).forEach(type => { %>
+  <% messages[type].forEach(msg => { %>
+    <div class="ui <%= type %> message">
+      <i class="close icon"></i>
+      <div class="header">
+        <%= msg %>
+      </div>
+    </div>
+  <% }) %>
+<% }) %>

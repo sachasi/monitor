@@ -1,0 +1,111 @@
+<h1 class="ui header">Webhooks for <%= site %></h1>
+
+<div class="ui two item menu">
+  <a class="item" href="/monitor/<%= site %>">Products</a>
+  <a class="active item" href="/monitor/<%= site %>/webhooks">Webhooks</a>
+</div>
+
+<div class="ui segment">
+  <div class="ui two column very relaxed grid">
+    <div class="column">
+      <h2 class="ui header">Add a new webhook</h2>
+
+      <form
+        class="ui form"
+        id="add-webhook"
+        method="POST"
+        action="/monitor/<%= site %>/webhooks/add"
+      >
+        <div class="field">
+          <label>Webhook URL</label>
+          <input
+            type="text"
+            name="webhook"
+            id="webhook"
+            placeholder="https://discord.com/api/webhooks/id/secret"
+          />
+        </div>
+        <div class="field">
+          <label>Note</label>
+          <input type="text" name="note" id="note" placeholder="Not required" />
+        </div>
+        <button class="ui violet button" id="validate-btn">Validate</button>
+        <button class="ui button" type="submit" disabled id="add-btn">
+          Add
+        </button>
+      </form>
+    </div>
+    <div class="column">
+      <div class="ui items">
+        <div class="item">
+          <div class="content">
+            <a class="header" id="wi-name">Webhook name</a>
+            <div class="meta">
+              <span id="wi-cid">Webhook channel</span>
+            </div>
+            <div class="description">
+              <p id="wi-gid">Webhook guild</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<table class="ui celled table">
+  <thead>
+    <tr>
+      <th>Webhook ID</th>
+      <th>Note</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% webhooks.forEach(webhook => { %>
+    <tr>
+      <td data-label="Webhook ID"><%= webhook.webhook_id %></td>
+      <td data-label="Note"><%= webhook.note %></td>
+      <td data-label="Actions">
+        <a
+          class="ui icon button red"
+          href="/monitor/<%= site %>/webhooks/remove?id=<%= webhook.id %>"
+        >
+          <i class="trash icon"></i>
+        </a>
+        <a
+          class="ui icon button green"
+          href="/monitor/<%= site %>/webhooks/test?id=<%= webhook.id %>"
+        >
+          <i class="play icon"></i>
+        </a>
+      </td>
+    </tr>
+    <% }) %>
+  </tbody>
+</table>
+
+<script>
+  async function validateWebhook(url) {
+    const res = await fetch('/monitor/<%= site %>/webhooks/validate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        url,
+      }),
+      credentials: 'include',
+    })
+    const json = await res.json()
+    return json.webhook
+  }
+  $('#validate-btn').click(async (e) => {
+    e.preventDefault()
+    let info = await validateWebhook($('#webhook').val())
+    $('#wi-name').text(info.name)
+    $('#wi-gid').text(info.guild_id)
+    $('#wi-cid').text(info.channel_id)
+    $('#validate-btn').removeClass('violet')
+    $('#add-btn').removeAttr('disabled').addClass('violet')
+  })
+</script>

@@ -1,0 +1,131 @@
+<h1 class="ui header">Monitored products for <%= site %></h1>
+
+<div class="ui two item menu">
+  <a class="active item" href="/monitor/<%= site %>">Products</a>
+  <a class="item" href="/monitor/<%= site %>/webhooks">Webhooks</a>
+</div>
+
+<div class="ui segment">
+  <div class="ui two column very relaxed grid">
+    <div class="column">
+      <h2 class="ui header">Add a new product</h2>
+
+      <form
+        class="ui form"
+        id="add-product"
+        method="POST"
+        action="/monitor/<%= site %>/add_product"
+      >
+        <div class="field">
+          <label>SKU (Product ID)</label>
+          <input type="text" name="sku" id="sku" placeholder="e.g. 14969729" />
+        </div>
+        <button class="ui violet button" id="info-btn">
+          Fetch product info
+        </button>
+        <button class="ui button" type="submit" disabled id="add-btn">
+          Add
+        </button>
+      </form>
+    </div>
+    <div class="column">
+      <div class="ui items">
+        <div class="item">
+          <div class="image">
+            <img
+              id="pi-img"
+              src="https://cdn.discordapp.com/attachments/797896535303389215/841376470844309574/questionmark.png"
+            />
+          </div>
+          <div class="content">
+            <a
+              class="header"
+              id="pi-title"
+              href="#"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              ...
+            </a>
+            <div class="meta">
+              <span> - </span>
+            </div>
+            <div class="description">
+              <p id="pi-desc">desc</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<table class="ui celled table">
+  <thead>
+    <tr>
+      <th>SKU</th>
+      <th>Image</th>
+      <th>Name</th>
+      <th>Last Status</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% products.forEach(product => { %>
+    <tr>
+      <td data-label="SKU"><%= product.sku %></td>
+      <td data-label="Image">
+        <img class="product-image" src="<%= product.image %>" />
+      </td>
+      <td data-label="Name">
+        <a href="<%= product.url %>" target="_blank" rel="noopener noreferrer">
+          <%= product.name %>
+        </a>
+      </td>
+      <td data-label="Last Status">
+        <%= product.status.status %> (<%= product.status.stock %> stock)
+      </td>
+      <td data-label="Actions">
+        <a
+          class="ui icon button red"
+          href="/monitor/<%= site %>/remove_product?id=<%= product.id %>"
+        >
+          <i class="trash icon"></i>
+        </a>
+      </td>
+    </tr>
+    <% }) %>
+  </tbody>
+</table>
+
+<script>
+  async function getProductInfo(sku) {
+    const res = await fetch('/monitor/<%= site %>/product_info', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        sku,
+      }),
+      credentials: 'include',
+    })
+    const json = await res.json()
+    return json.product
+  }
+  async function updateProductInfo() {}
+  $('#info-btn').click(async (e) => {
+    e.preventDefault()
+    let info = await getProductInfo($('#sku').val())
+    $('#pi-img').attr('src', info.image)
+    $('#pi-title').text(info.name).attr('href', info.url)
+    $('#pi-desc').text(info.description)
+    $('#info-btn').removeClass('violet')
+    $('#add-btn').removeAttr('disabled').addClass('violet')
+  })
+</script>
+<style>
+  .product-image {
+    width: 128px;
+    height: 128px;
+  }
+</style>
